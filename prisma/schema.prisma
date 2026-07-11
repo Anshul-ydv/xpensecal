@@ -121,14 +121,15 @@ model Expense {
 
   splitType    SplitType
   paidByMemberId String?
-  paidBy         Member?     @relation("ExpensePaidBy", fields: [paidByMemberId], references: [id])
+  // If the payer member is deleted, keep the expense but null the payer.
+  paidBy         Member?     @relation("ExpensePaidBy", fields: [paidByMemberId], references: [id], onDelete: SetNull)
   notes        String?
   status       ExpenseStatus @default(ACTIVE)
   createdAt    DateTime      @default(now())
 
   // Import provenance (null for expenses created manually in the UI).
   importBatchId String?
-  importBatch   ImportBatch? @relation(fields: [importBatchId], references: [id])
+  importBatch   ImportBatch? @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
   sourceRow     Int?
 
   splits    ExpenseSplit[]
@@ -144,7 +145,7 @@ model ExpenseSplit {
   expenseId      String
   expense        Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
   memberId       String
-  member         Member  @relation(fields: [memberId], references: [id])
+  member         Member  @relation(fields: [memberId], references: [id], onDelete: Cascade)
   owedBaseMinor  Int // what this member owes for this expense, in base minor units
   // Raw share input for this member (percent, weight, or explicit amount) for display.
   rawShare       String?
@@ -161,9 +162,9 @@ model Settlement {
   groupId        String
   group          Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
   fromMemberId   String
-  fromMember     Member   @relation("SettlementFrom", fields: [fromMemberId], references: [id])
+  fromMember     Member   @relation("SettlementFrom", fields: [fromMemberId], references: [id], onDelete: Cascade)
   toMemberId     String
-  toMember       Member   @relation("SettlementTo", fields: [toMemberId], references: [id])
+  toMember       Member   @relation("SettlementTo", fields: [toMemberId], references: [id], onDelete: Cascade)
   date           DateTime
   currency       String
   amountMinor    Int
@@ -173,7 +174,7 @@ model Settlement {
   createdAt      DateTime @default(now())
 
   importBatchId String?
-  importBatch   ImportBatch? @relation(fields: [importBatchId], references: [id])
+  importBatch   ImportBatch? @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
   sourceRow     Int?
 
   anomalies ImportAnomaly[]
@@ -253,7 +254,7 @@ model ImportAnomaly {
 
   // Optional links to the record the anomaly produced or affected.
   expenseId    String?
-  expense      Expense?    @relation(fields: [expenseId], references: [id])
+  expense      Expense?    @relation(fields: [expenseId], references: [id], onDelete: SetNull)
   settlementId String?
-  settlement   Settlement? @relation(fields: [settlementId], references: [id])
+  settlement   Settlement? @relation(fields: [settlementId], references: [id], onDelete: SetNull)
 }
