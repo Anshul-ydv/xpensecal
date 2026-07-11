@@ -1,0 +1,259 @@
+// XpenseCal data model.
+//
+// Design principles:
+// - Money is stored as integer *minor units* (paise / cents) to avoid floating
+//   point drift. Every monetary column ends in `Minor`.
+// - Every expense stores both its ORIGINAL currency/amount and a BASE-currency
+//   (INR) equivalent, together with the FX rate used. Nothing silently pretends
+//   a dollar is a rupee (Priya's request), and every conversion is auditable.
+// - Group membership is time-bounded via `joinedAt` / `leftAt` on Member, so an
+//   expense can be checked against who was actually living in the flat on its
+//   date (Sam's request).
+// - The import pipeline records an ImportBatch + ImportAnomaly rows so every data
+//   problem is detected, surfaced, and handled with a documented action
+//   (the "import report"), and changes/deletions can be approved (Meera's request).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Auth
+// ---------------------------------------------------------------------------
+
+// A person who can log in to the app. Distinct from Member: a Member is a
+// participant in a group's expenses and may exist without ever logging in
+// (e.g. imported roommates), while a User is an authenticated account.
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  createdGroups Group[]        @relation("GroupCreatedBy")
+  memberships   Member[] // groups this user participates in, linked via Member.userId
+  importBatches ImportBatch[]
+}
+
+// ---------------------------------------------------------------------------
+// Groups & membership
+// ---------------------------------------------------------------------------
+
+model Group {
+  id           String   @id @default(cuid())
+  name         String
+  // Currency all balances are expressed in. Foreign expenses are converted to it.
+  baseCurrency String   @default("INR")
+  createdAt    DateTime @default(now())
+
+  createdById String
+  createdBy   User   @relation("GroupCreatedBy", fields: [createdById], references: [id])
+
+  members      Member[]
+  expenses     Expense[]
+  settlements  Settlement[]
+  importBatches ImportBatch[]
+}
+
+// A participant in a group. `joinedAt` / `leftAt` define the window during which
+// the member was active in the flat. Null joinedAt = present since the start;
+// null leftAt = still a member. This lets balances ignore expenses dated outside
+// a member's active window.
+model Member {
+  id       String    @id @default(cuid())
+  groupId  String
+  group    Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  // Display name as it should appear in the UI (canonical, already normalized).
+  name     String
+  // Optional link to a login account.
+  userId   String?
+  user     User?     @relation(fields: [userId], references: [id])
+  joinedAt DateTime?
+  leftAt   DateTime?
+
+  paidExpenses     Expense[]      @relation("ExpensePaidBy")
+  splits           ExpenseSplit[]
+  settlementsFrom  Settlement[]   @relation("SettlementFrom")
+  settlementsTo    Settlement[]   @relation("SettlementTo")
+
+  // A member name is unique within a group (after normalization).
+  @@unique([groupId, name])
+}
+
+// ---------------------------------------------------------------------------
+// Expenses
+// ---------------------------------------------------------------------------
+
+enum SplitType {
+  EQUAL // divided evenly across participants
+  UNEQUAL // explicit amount per participant
+  PERCENTAGE // explicit percentage per participant
+  SHARE // integer weights (e.g. 2:1:1) per participant
+}
+
+enum ExpenseStatus {
+  ACTIVE // counts toward balances
+  SUPERSEDED // a duplicate that lost to another row; kept for audit, excluded from balances
+  VOID // excluded from balances (e.g. zero-amount placeholder)
+}
+
+model Expense {
+  id          String        @id @default(cuid())
+  groupId     String
+  group       Group         @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  description String
+  date        DateTime
+
+  // Original currency as entered.
+  currency        String
+  amountMinor     Int // amount in original-currency minor units (can be negative for refunds)
+  // Base-currency (group.baseCurrency) equivalent.
+  amountBaseMinor Int
+  // Rate applied: 1 unit of `currency` = fxRate units of base currency. Stored so
+  // the conversion is auditable and re-computable. 1.0 when currency == base.
+  fxRate          Float         @default(1)
+
+  splitType    SplitType
+  paidByMemberId String?
+  paidBy         Member?     @relation("ExpensePaidBy", fields: [paidByMemberId], references: [id])
+  notes        String?
+  status       ExpenseStatus @default(ACTIVE)
+  createdAt    DateTime      @default(now())
+
+  // Import provenance (null for expenses created manually in the UI).
+  importBatchId String?
+  importBatch   ImportBatch? @relation(fields: [importBatchId], references: [id])
+  sourceRow     Int?
+
+  splits    ExpenseSplit[]
+  anomalies ImportAnomaly[]
+}
+
+// The resolved amount a single member owes for a single expense, in base-currency
+// minor units. All split types collapse to concrete per-member owed amounts here,
+// which makes balances a simple sum and gives Rohan an exact line-by-line
+// breakdown of every number.
+model ExpenseSplit {
+  id             String  @id @default(cuid())
+  expenseId      String
+  expense        Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  memberId       String
+  member         Member  @relation(fields: [memberId], references: [id])
+  owedBaseMinor  Int // what this member owes for this expense, in base minor units
+  // Raw share input for this member (percent, weight, or explicit amount) for display.
+  rawShare       String?
+
+  @@unique([expenseId, memberId])
+}
+
+// ---------------------------------------------------------------------------
+// Settlements (payments between members, not shared expenses)
+// ---------------------------------------------------------------------------
+
+model Settlement {
+  id             String   @id @default(cuid())
+  groupId        String
+  group          Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  fromMemberId   String
+  fromMember     Member   @relation("SettlementFrom", fields: [fromMemberId], references: [id])
+  toMemberId     String
+  toMember       Member   @relation("SettlementTo", fields: [toMemberId], references: [id])
+  date           DateTime
+  currency       String
+  amountMinor    Int
+  amountBaseMinor Int
+  fxRate         Float    @default(1)
+  note           String?
+  createdAt      DateTime @default(now())
+
+  importBatchId String?
+  importBatch   ImportBatch? @relation(fields: [importBatchId], references: [id])
+  sourceRow     Int?
+
+  anomalies ImportAnomaly[]
+}
+
+// ---------------------------------------------------------------------------
+// Import report
+// ---------------------------------------------------------------------------
+
+model ImportBatch {
+  id          String   @id @default(cuid())
+  groupId     String
+  group       Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  filename    String
+  createdAt   DateTime @default(now())
+
+  totalRows            Int @default(0)
+  importedExpenses     Int @default(0)
+  importedSettlements  Int @default(0)
+  skippedRows          Int @default(0)
+
+  anomalies   ImportAnomaly[]
+  expenses    Expense[]
+  settlements Settlement[]
+}
+
+enum AnomalySeverity {
+  INFO
+  WARNING
+  ERROR
+}
+
+// Lifecycle of an anomaly. Most fixes are applied automatically and logged
+// (AUTO_APPLIED). Anything that deletes or materially changes data starts as
+// PENDING_APPROVAL so a human (Meera) can APPROVE or REJECT it.
+enum AnomalyStatus {
+  AUTO_APPLIED
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+}
+
+enum AnomalyType {
+  DUPLICATE_EXACT
+  DUPLICATE_CONFLICTING
+  SETTLEMENT_AS_EXPENSE
+  MISSING_PAYER
+  MISSING_CURRENCY
+  FOREIGN_CURRENCY
+  NEGATIVE_AMOUNT
+  ZERO_AMOUNT
+  SUBUNIT_ROUNDING
+  DATE_OUT_OF_RANGE
+  DATE_AMBIGUOUS
+  NON_MEMBER_PARTICIPANT
+  MEMBER_INACTIVE_AT_DATE
+  PERCENTAGE_SUM_INVALID
+  SPLIT_TYPE_DETAILS_MISMATCH
+  PAYER_NOT_IN_SPLIT
+  NAME_NORMALIZED
+}
+
+model ImportAnomaly {
+  id            String          @id @default(cuid())
+  importBatchId String
+  importBatch   ImportBatch     @relation(fields: [importBatchId], references: [id], onDelete: Cascade)
+  rowNumber     Int // 1-based data row number in the CSV
+  rawRow        String // the original row, serialized, for full traceability
+  type          AnomalyType
+  severity      AnomalySeverity
+  status        AnomalyStatus   @default(AUTO_APPLIED)
+  message       String // what was detected
+  action        String // what the importer did about it
+  createdAt     DateTime        @default(now())
+
+  // Optional links to the record the anomaly produced or affected.
+  expenseId    String?
+  expense      Expense?    @relation(fields: [expenseId], references: [id])
+  settlementId String?
+  settlement   Settlement? @relation(fields: [settlementId], references: [id])
+}
