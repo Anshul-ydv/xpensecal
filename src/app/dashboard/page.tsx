@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { logoutAction } from "../(auth)/actions";
 
@@ -25,9 +26,17 @@ export default async function DashboardPage() {
       </header>
 
       <section className="rounded-xl border border-black/10 p-6 dark:border-white/15">
-        <p className="text-sm text-neutral-500">
-          Groups and expenses are coming in the next steps of the build.
+        <h2 className="mb-2 font-medium">Groups</h2>
+        <p className="mb-4 text-sm text-neutral-500">
+          Create a group, manage who is in it over time, add expenses, and see
+          who owes whom.
         </p>
+        <Link
+          href="/groups"
+          className="inline-block rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 dark:bg-white dark:text-neutral-900"
+        >
+          Go to your groups
+        </Link>
       </section>
     </main>
   );
