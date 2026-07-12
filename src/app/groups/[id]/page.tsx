@@ -53,7 +53,7 @@ export default async function GroupDetailPage({
     include: {
       paidBy: { select: { name: true } },
       splits: {
-        include: { member: { select: { name: true } } },
+        include: { member: { select: { name: true, isGuest: true } } },
         orderBy: { member: { name: "asc" } },
       },
     },
@@ -75,22 +75,7 @@ export default async function GroupDetailPage({
     select: { id: true },
   });
 
-  // Non-member guests the importer excluded from each expense's split (e.g.
-  // "Dev's friend Kabir"). Surfaced on the expense so the handling is visible
-  // in the ledger, not only in the import report.
-  const nonMemberAnomalies = await prisma.importAnomaly.findMany({
-    where: { type: "NON_MEMBER_PARTICIPANT", expense: { groupId: id } },
-    select: { expenseId: true, message: true },
-  });
-  const excludedByExpense = new Map<string, string[]>();
-  for (const a of nonMemberAnomalies) {
-    if (!a.expenseId) continue;
-    const name = a.message.match(/"([^"]+)"/)?.[1];
-    if (!name) continue;
-    const list = excludedByExpense.get(a.expenseId) ?? [];
-    list.push(name);
-    excludedByExpense.set(a.expenseId, list);
-  }
+
 
   // Pre-format settlements for the client form's "previous settlements" list.
   const settlementDTOs = settlements.map((s) => ({
@@ -234,8 +219,13 @@ export default async function GroupDetailPage({
                             key={s.id}
                             className="flex justify-between gap-4 border-b border-dashed border-border pb-1 last:border-0"
                           >
-                            <span>
+                            <span className="flex items-center gap-1.5">
                               {s.member.name}
+                              {s.member.isGuest && (
+                                <span className="rounded-full bg-violet-500/15 px-1.5 py-0.5 text-xs font-medium text-violet-600 dark:text-violet-300">
+                                  guest
+                                </span>
+                              )}
                               {s.rawShare ? (
                                 <span className="text-muted"> ({s.rawShare})</span>
                               ) : null}
@@ -246,18 +236,6 @@ export default async function GroupDetailPage({
                           </li>
                         ))}
                       </ul>
-                      {(() => {
-                        const excluded = excludedByExpense.get(e.id);
-                        if (!excluded || excluded.length === 0) return null;
-                        return (
-                          <p className="mt-3 rounded-md bg-amber-500/10 px-2.5 py-1.5 text-xs text-amber-600 dark:text-amber-300">
-                            {excluded.length} non-member
-                            {excluded.length > 1 ? "s" : ""} excluded:{" "}
-                            {excluded.join(", ")} — their share was redistributed
-                            among the members above.
-                          </p>
-                        );
-                      })()}
                       <div className="mt-3 flex justify-end">
                         <DeleteExpenseButton expenseId={e.id} />
                       </div>

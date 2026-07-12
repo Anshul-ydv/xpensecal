@@ -452,14 +452,26 @@ export async function runImport(opts: {
 
         for (const rawName of participantNames) {
           const norm = normalizeName(rawName);
-          const member = byName.get(norm);
+          let member = byName.get(norm);
           if (!member) {
+            // Policy: an unknown participant joins as a GUEST and is INCLUDED in
+            // the split, so the expense is divided across everyone who was
+            // actually present. (Previously they were excluded and their share
+            // redistributed to members, which inflated members' balances.) Still
+            // flagged so the addition is visible in the import report.
+            member = await tx.member.create({
+              data: {
+                groupId: group.id,
+                name: norm || rawName.trim(),
+                isGuest: true,
+              },
+            });
+            byName.set(norm, member);
             pending.push({
               type: "NON_MEMBER_PARTICIPANT",
-              message: `"${rawName}" is not a group member.`,
-              action: `Excluded from the split; their share is redistributed among members.`,
+              message: `"${rawName}" is not a listed flatmate.`,
+              action: `Added as a guest and included in this split.`,
             });
-            continue;
           }
           if (!isActiveOn(member, usedDate)) {
             pending.push({
