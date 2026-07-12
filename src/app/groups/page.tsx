@@ -13,7 +13,7 @@ export default async function GroupsPage() {
   return (
     <>
       <AppHeader userName={user.name} />
-      <main className="mx-auto max-w-3xl px-5 py-8 sm:py-10">
+      <main className="mx-auto max-w-7xl px-5 py-8 sm:py-10">
       <BackButton fallback="/dashboard" className="mb-4" />
       <header className="mb-8">
         <h1 className="text-3xl font-semibold tracking-tight">Your groups</h1>

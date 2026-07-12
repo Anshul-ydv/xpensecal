@@ -63,6 +63,30 @@ export default async function GroupDetailPage({
     },
   });
 
+  // If this group was created by a CSV import, link straight to its report.
+  const importBatch = await prisma.importBatch.findFirst({
+    where: { groupId: id },
+    orderBy: { createdAt: "desc" },
+    select: { id: true },
+  });
+
+  // Non-member guests the importer excluded from each expense's split (e.g.
+  // "Dev's friend Kabir"). Surfaced on the expense so the handling is visible
+  // in the ledger, not only in the import report.
+  const nonMemberAnomalies = await prisma.importAnomaly.findMany({
+    where: { type: "NON_MEMBER_PARTICIPANT", expense: { groupId: id } },
+    select: { expenseId: true, message: true },
+  });
+  const excludedByExpense = new Map<string, string[]>();
+  for (const a of nonMemberAnomalies) {
+    if (!a.expenseId) continue;
+    const name = a.message.match(/"([^"]+)"/)?.[1];
+    if (!name) continue;
+    const list = excludedByExpense.get(a.expenseId) ?? [];
+    list.push(name);
+    excludedByExpense.set(a.expenseId, list);
+  }
+
   // Pre-format settlements for the client form's "previous settlements" list.
   const settlementDTOs = settlements.map((s) => ({
     id: s.id,
@@ -92,6 +116,14 @@ export default async function GroupDetailPage({
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          {importBatch && (
+            <Link
+              href={`/import/${importBatch.id}`}
+              className="btn btn-ghost"
+            >
+              Import report
+            </Link>
+          )}
           <Link
             href={`/groups/${group.id}/members`}
             className="btn btn-ghost"
@@ -207,6 +239,18 @@ export default async function GroupDetailPage({
                           </li>
                         ))}
                       </ul>
+                      {(() => {
+                        const excluded = excludedByExpense.get(e.id);
+                        if (!excluded || excluded.length === 0) return null;
+                        return (
+                          <p className="mt-3 rounded-md bg-amber-500/10 px-2.5 py-1.5 text-xs text-amber-600 dark:text-amber-300">
+                            {excluded.length} non-member
+                            {excluded.length > 1 ? "s" : ""} excluded:{" "}
+                            {excluded.join(", ")} — their share was redistributed
+                            among the members above.
+                          </p>
+                        );
+                      })()}
                       <div className="mt-3 flex justify-end">
                         <DeleteExpenseButton expenseId={e.id} />
                       </div>
