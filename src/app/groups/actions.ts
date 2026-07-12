@@ -122,6 +122,24 @@ export async function updateMemberAction(
   return null;
 }
 
+export async function deleteGroupAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const user = await requireUser();
+  const groupId = String(formData.get("groupId") ?? "");
+  if (!groupId) return { error: "Missing group" };
+
+  // Ownership is enforced here; the DB cascade (see schema.prisma) removes the
+  // group's members, expenses, settlements, and import batches in one step.
+  await assertGroupAccess(groupId, user.id);
+  await prisma.group.delete({ where: { id: groupId } });
+
+  revalidatePath("/dashboard");
+  revalidatePath("/groups");
+  return null;
+}
+
 export async function deleteMemberAction(
   _prev: ActionState,
   formData: FormData,

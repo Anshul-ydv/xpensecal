@@ -3,6 +3,7 @@ import { requireUser } from "@/lib/auth";
 import { listGroupsForUser } from "@/lib/groups";
 import { AppHeader } from "../AppHeader";
 import { CreateGroupForm } from "./CreateGroupForm";
+import { DeleteGroupButton } from "./DeleteGroupButton";
 
 export default async function GroupsPage() {
   const user = await requireUser();
@@ -28,10 +29,13 @@ export default async function GroupsPage() {
       ) : (
         <ul className="flex flex-col gap-3">
           {groups.map((g) => (
-            <li key={g.id}>
+            <li
+              key={g.id}
+              className="card card-link flex items-center gap-3 py-4 pl-5 pr-3"
+            >
               <Link
                 href={`/groups/${g.id}`}
-                className="card card-link flex items-center justify-between px-5 py-4"
+                className="flex flex-1 items-center justify-between gap-3"
               >
                 <span className="font-medium">{g.name}</span>
                 <span className="text-sm text-muted">
@@ -39,6 +43,7 @@ export default async function GroupsPage() {
                   {g.baseCurrency}
                 </span>
               </Link>
+              <DeleteGroupButton groupId={g.id} groupName={g.name} />
             </li>
           ))}
         </ul>

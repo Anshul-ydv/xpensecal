@@ -4,12 +4,23 @@ import { useActionState, useEffect, useRef } from "react";
 import { createSettlementAction, type ActionState } from "./actions";
 import type { FormMember } from "./NewExpenseForm";
 
+export type RecentSettlement = {
+  id: string;
+  fromName: string;
+  toName: string;
+  date: string;
+  amount: string;
+  note: string | null;
+};
+
 export function NewSettlementForm({
   groupId,
   members,
+  recent = [],
 }: {
   groupId: string;
   members: FormMember[];
+  recent?: RecentSettlement[];
 }) {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(
     createSettlementAction,
@@ -24,6 +35,7 @@ export function NewSettlementForm({
   const today = new Date().toISOString().slice(0, 10);
 
   return (
+    <div className="flex flex-col gap-4">
     <form ref={formRef} action={formAction} className="card flex flex-col gap-3.5">
       <h3 className="font-semibold">Record a settlement</h3>
       <p className="text-xs text-muted">
@@ -104,5 +116,40 @@ export function NewSettlementForm({
         {pending ? "Saving…" : "Record settlement"}
       </button>
     </form>
+
+    <div className="card flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <h3 className="font-semibold">Previous settlements</h3>
+        {recent.length > 0 && (
+          <span className="badge">{recent.length}</span>
+        )}
+      </div>
+      {recent.length === 0 ? (
+        <p className="text-sm text-muted">No settlements yet.</p>
+      ) : (
+        <ul className="flex max-h-64 flex-col gap-2 overflow-y-auto">
+          {recent.map((s) => (
+            <li
+              key={s.id}
+              className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-baseline gap-2 rounded-lg bg-elevated px-3.5 py-2.5 text-sm"
+            >
+              <span className="whitespace-nowrap">
+                <span className="font-medium">{s.fromName}</span>{" "}
+                <span className="text-muted">paid</span>{" "}
+                <span className="font-medium">{s.toName}</span>
+              </span>
+              <span className="min-w-0 truncate text-xs text-muted">
+                · {s.date}
+                {s.note ? ` · ${s.note}` : ""}
+              </span>
+              <span className="whitespace-nowrap font-semibold tabular-nums">
+                {s.amount}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+    </div>
   );
 }

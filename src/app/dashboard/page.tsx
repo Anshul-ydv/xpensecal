@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { listGroupsForUser } from "@/lib/groups";
 import { AppHeader } from "../AppHeader";
+import { DeleteGroupButton } from "../groups/DeleteGroupButton";
 
 export default async function DashboardPage() {
   const user = await requireUser();
@@ -52,16 +53,20 @@ export default async function DashboardPage() {
           ) : (
             <ul className="flex flex-col gap-2.5">
               {groups.map((g) => (
-                <li key={g.id}>
+                <li
+                  key={g.id}
+                  className="card card-link flex items-center gap-3 py-3.5 pl-5 pr-3"
+                >
                   <Link
                     href={`/groups/${g.id}`}
-                    className="card card-link flex items-center justify-between px-5 py-3.5"
+                    className="flex flex-1 items-center justify-between gap-3"
                   >
                     <span className="font-medium">{g.name}</span>
                     <span className="text-sm text-muted">
                       {g._count.members} members · {g._count.expenses} expenses
                     </span>
                   </Link>
+                  <DeleteGroupButton groupId={g.id} groupName={g.name} />
                 </li>
               ))}
             </ul>

@@ -87,6 +87,16 @@ export default async function GroupDetailPage({
     },
   });
 
+  // Pre-format settlements for the client form's "previous settlements" list.
+  const settlementDTOs = settlements.map((s) => ({
+    id: s.id,
+    fromName: s.fromMember.name,
+    toName: s.toMember.name,
+    date: fmtDate(s.date),
+    amount: formatMoney(s.amountBaseMinor, base),
+    note: s.note ?? null,
+  }));
+
   return (
     <main className="mx-auto max-w-4xl px-5 py-8 sm:py-10">
       <nav className="mb-5 text-sm text-muted">
@@ -125,7 +135,11 @@ export default async function GroupDetailPage({
       {members.length > 0 && (
         <section className="mb-10 grid grid-cols-1 gap-6 lg:grid-cols-2">
           <NewExpenseForm groupId={group.id} members={formMembers} />
-          <NewSettlementForm groupId={group.id} members={formMembers} />
+          <NewSettlementForm
+            groupId={group.id}
+            members={formMembers}
+            recent={settlementDTOs}
+          />
         </section>
       )}
 
@@ -199,36 +213,6 @@ export default async function GroupDetailPage({
                 </li>
               );
             })}
-          </ul>
-        )}
-      </section>
-
-      <section>
-        <h2 className="mb-4 text-lg font-semibold">Settlements</h2>
-        {settlements.length === 0 ? (
-          <div className="card text-sm text-muted">No settlements yet.</div>
-        ) : (
-          <ul className="flex flex-col gap-2.5">
-            {settlements.map((s) => (
-              <li
-                key={s.id}
-                className="card flex items-center justify-between px-4 py-3.5 text-sm"
-              >
-                <span>
-                  <span className="font-medium">{s.fromMember.name}</span>{" "}
-                  <span className="text-muted">paid</span>{" "}
-                  <span className="font-medium">{s.toMember.name}</span>
-                  <span className="text-muted">
-                    {" "}
-                    · {fmtDate(s.date)}
-                    {s.note ? ` · ${s.note}` : ""}
-                  </span>
-                </span>
-                <span className="font-semibold tabular-nums">
-                  {formatMoney(s.amountBaseMinor, base)}
-                </span>
-              </li>
-            ))}
           </ul>
         )}
       </section>
