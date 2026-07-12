@@ -13,12 +13,21 @@ import { createSettlement } from "@/lib/settlements";
 
 export type ActionState = { error: string } | { ok: true } | null;
 
+// A money amount typed by the user: required, and must be a real number.
+// This is the safeguard against non-numeric input like "anfa" reaching the
+// currency math (toMinor would otherwise just reject it with a vague message).
+const numericAmount = z
+  .string()
+  .trim()
+  .min(1, "Amount is required")
+  .refine((v) => Number.isFinite(Number(v)), "Amount must be a number");
+
 const baseExpenseSchema = z.object({
   groupId: z.string().min(1),
   description: z.string().trim().min(1, "Description is required").max(140),
   date: z.string().min(1, "Date is required"),
   currency: z.string().trim().toUpperCase(),
-  amount: z.string().trim().min(1, "Amount is required"),
+  amount: numericAmount,
   splitType: z.enum(["EQUAL", "UNEQUAL", "PERCENTAGE", "SHARE"]),
   paidByMemberId: z.string().min(1, "Select who paid"),
 });
@@ -182,7 +191,7 @@ const settlementSchema = z
     toMemberId: z.string().min(1, "Select who was paid"),
     date: z.string().min(1, "Date is required"),
     currency: z.string().trim().toUpperCase(),
-    amount: z.string().trim().min(1, "Amount is required"),
+    amount: numericAmount,
     note: z.string().trim().max(140).optional(),
   })
   .refine((d) => d.fromMemberId !== d.toMemberId, {

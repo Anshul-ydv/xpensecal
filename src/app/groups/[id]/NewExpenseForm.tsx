@@ -81,6 +81,8 @@ export function NewExpenseForm({
           <span className="text-muted">Amount</span>
           <input
             name="amount"
+            type="number"
+            step="0.01"
             inputMode="decimal"
             required
             placeholder="0.00"
@@ -131,6 +133,9 @@ export function NewExpenseForm({
             {needsValue && (
               <input
                 name={`value_${m.id}`}
+                type="number"
+                step="0.01"
+                min="0"
                 inputMode="decimal"
                 placeholder={VALUE_HINT[splitType]}
                 className="field w-40"

@@ -1,5 +1,6 @@
 import { requireUser } from "@/lib/auth";
 import { AppHeader } from "../AppHeader";
+import { BackButton } from "../BackButton";
 import { ImportForms } from "./ImportForms";
 
 export default async function ImportPage() {
@@ -9,6 +10,7 @@ export default async function ImportPage() {
     <>
       <AppHeader userName={user.name} />
       <main className="mx-auto max-w-2xl px-5 py-8 sm:py-10">
+      <BackButton fallback="/dashboard" className="mb-4" />
       <header className="mb-8">
         <h1 className="text-3xl font-semibold tracking-tight">Import expenses</h1>
         <p className="mt-1.5 text-sm text-muted">

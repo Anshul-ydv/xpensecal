@@ -81,6 +81,9 @@ export function NewSettlementForm({
             <span className="text-muted">Amount</span>
             <input
               name="amount"
+              type="number"
+              step="0.01"
+              min="0.01"
               inputMode="decimal"
               required
               placeholder="0.00"
@@ -120,31 +123,28 @@ export function NewSettlementForm({
     <div className="card flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <h3 className="font-semibold">Previous settlements</h3>
-        {recent.length > 0 && (
-          <span className="badge">{recent.length}</span>
-        )}
+        {recent.length > 0 && <span className="badge">{recent.length}</span>}
       </div>
       {recent.length === 0 ? (
         <p className="text-sm text-muted">No settlements yet.</p>
       ) : (
-        <ul className="flex max-h-64 flex-col gap-2 overflow-y-auto">
+        <ul className="-mr-1 flex max-h-52 flex-col gap-2 overflow-y-auto pr-1 [scrollbar-width:thin]">
           {recent.map((s) => (
-            <li
-              key={s.id}
-              className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-baseline gap-2 rounded-lg bg-elevated px-3.5 py-2.5 text-sm"
-            >
-              <span className="whitespace-nowrap">
-                <span className="font-medium">{s.fromName}</span>{" "}
-                <span className="text-muted">paid</span>{" "}
-                <span className="font-medium">{s.toName}</span>
-              </span>
-              <span className="min-w-0 truncate text-xs text-muted">
-                · {s.date}
+            <li key={s.id} className="rounded-lg bg-elevated px-3.5 py-2.5">
+              <div className="flex items-baseline justify-between gap-3">
+                <p className="min-w-0 truncate text-sm">
+                  <span className="font-medium">{s.fromName}</span>{" "}
+                  <span className="text-muted">paid</span>{" "}
+                  <span className="font-medium">{s.toName}</span>
+                </p>
+                <span className="shrink-0 text-sm font-semibold tabular-nums">
+                  {s.amount}
+                </span>
+              </div>
+              <p className="mt-0.5 truncate text-xs text-muted">
+                {s.date}
                 {s.note ? ` · ${s.note}` : ""}
-              </span>
-              <span className="whitespace-nowrap font-semibold tabular-nums">
-                {s.amount}
-              </span>
+              </p>
             </li>
           ))}
         </ul>

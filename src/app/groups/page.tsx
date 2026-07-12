@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { listGroupsForUser } from "@/lib/groups";
 import { AppHeader } from "../AppHeader";
+import { BackButton } from "../BackButton";
 import { CreateGroupForm } from "./CreateGroupForm";
 import { DeleteGroupButton } from "./DeleteGroupButton";
 
@@ -13,6 +14,7 @@ export default async function GroupsPage() {
     <>
       <AppHeader userName={user.name} />
       <main className="mx-auto max-w-3xl px-5 py-8 sm:py-10">
+      <BackButton fallback="/dashboard" className="mb-4" />
       <header className="mb-8">
         <h1 className="text-3xl font-semibold tracking-tight">Your groups</h1>
         <p className="mt-1.5 text-sm text-muted">

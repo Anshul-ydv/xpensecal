@@ -4,7 +4,8 @@ import type { AnomalySeverity } from "@prisma/client";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ANOMALY_META } from "@/lib/import/anomalies";
-import { ApproveReject } from "./ApproveReject";
+import { BackButton } from "@/app/BackButton";
+import { AnomalyExplorer, type AnomalyDTO } from "./AnomalyExplorer";
 
 const SEVERITY_ORDER: Record<AnomalySeverity, number> = {
   ERROR: 0,
@@ -19,19 +20,6 @@ const SEVERITY_STYLE: Record<AnomalySeverity, string> = {
   WARNING:
     "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-300",
   INFO: "border-sky-500/40 bg-sky-500/10 text-sky-600 dark:text-sky-300",
-};
-
-const SEVERITY_DOT: Record<AnomalySeverity, string> = {
-  ERROR: "bg-red-400",
-  WARNING: "bg-amber-400",
-  INFO: "bg-sky-400",
-};
-
-const STATUS_LABEL: Record<string, string> = {
-  AUTO_APPLIED: "auto-applied",
-  PENDING_APPROVAL: "needs approval",
-  APPROVED: "approved",
-  REJECTED: "rejected",
 };
 
 export default async function ImportReportPage({
@@ -62,8 +50,21 @@ export default async function ImportReportPage({
     return acc;
   }, {});
 
+  // Serialise for the interactive explorer (client component).
+  const anomalyDTOs: AnomalyDTO[] = anomalies.map((a) => ({
+    id: a.id,
+    rowNumber: a.rowNumber,
+    type: ANOMALY_META[a.type].label,
+    severity: a.severity,
+    status: a.status,
+    message: a.message,
+    action: a.action,
+    rawRow: a.rawRow,
+  }));
+
   return (
     <main className="mx-auto max-w-3xl px-5 py-8 sm:py-10">
+      <BackButton fallback="/import" className="mb-4" />
       <nav className="mb-5 text-sm text-muted">
         <Link href="/import" className="transition-colors hover:text-fg">
           Import
@@ -122,35 +123,7 @@ export default async function ImportReportPage({
         {anomalies.length === 0 ? (
           <p className="text-sm text-muted">No anomalies — clean import.</p>
         ) : (
-          <ul className="flex flex-col gap-3">
-            {anomalies.map((a) => (
-              <li key={a.id} className="card">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
-                    <span
-                      className={`inline-block h-2 w-2 rounded-full ${SEVERITY_DOT[a.severity]}`}
-                    />
-                    Row {a.rowNumber} · {ANOMALY_META[a.type].label}
-                  </span>
-                  <span className="badge">
-                    {STATUS_LABEL[a.status] ?? a.status}
-                  </span>
-                </div>
-                <p className="mt-2.5 text-sm">{a.message}</p>
-                <p className="mt-1.5 text-sm text-muted">
-                  <span className="font-medium text-fg">Action:</span> {a.action}
-                </p>
-                <p className="mt-3 truncate rounded-md bg-bg px-2.5 py-1.5 font-mono text-xs text-faint">
-                  {a.rawRow}
-                </p>
-                {a.status === "PENDING_APPROVAL" && (
-                  <div className="mt-3">
-                    <ApproveReject anomalyId={a.id} />
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
+          <AnomalyExplorer batchId={batch.id} anomalies={anomalyDTOs} />
         )}
       </section>
     </main>

@@ -17,13 +17,17 @@ export type RosterEntry = {
 };
 
 export const SAMPLE_ROSTER: RosterEntry[] = [
-  { name: "Aisha", joinedAt: null, leftAt: null },
-  { name: "Rohan", joinedAt: null, leftAt: null },
-  { name: "Priya", joinedAt: null, leftAt: null },
-  // Dev is a trip guest who shares specific expenses; open window, never a flatmate resident.
-  { name: "Dev", joinedAt: null, leftAt: null },
-  // Meera moved out at the end of March.
-  { name: "Meera", joinedAt: null, leftAt: "2026-03-31" },
+  // The original flatmates have shared expenses "since February"; the first
+  // recorded expense (February rent) is 2026-02-01, so that is their join date.
+  { name: "Aisha", joinedAt: "2026-02-01", leftAt: null },
+  { name: "Rohan", joinedAt: "2026-02-01", leftAt: null },
+  { name: "Priya", joinedAt: "2026-02-01", leftAt: null },
+  // Dev is a trip guest, not a permanent flatmate. His first shared expense is
+  // the 2026-02-08 weekend dinner ("Dev visiting for the weekend"), so that is
+  // his join date; leftAt stays open (he simply stops appearing after the trip).
+  { name: "Dev", joinedAt: "2026-02-08", leftAt: null },
+  // Meera was a flatmate since February and moved out at the end of March.
+  { name: "Meera", joinedAt: "2026-02-01", leftAt: "2026-03-31" },
   // Sam moved in mid-April; his first activity (deposit) is 2026-04-08.
   { name: "Sam", joinedAt: "2026-04-08", leftAt: null },
 ];

@@ -48,3 +48,51 @@ export async function resolveAnomalyAction(formData: FormData): Promise<void> {
 
   revalidatePath(`/import/${anomaly.importBatchId}`);
 }
+
+// Bulk version: approve or reject every still-pending anomaly in a batch in one
+// click. Same access check and same reversible-undo rule as the single action.
+export async function resolveAllPendingAction(formData: FormData): Promise<void> {
+  const user = await requireUser();
+  const batchId = String(formData.get("batchId") ?? "");
+  const decision = String(formData.get("decision") ?? "");
+  if (!batchId || (decision !== "APPROVED" && decision !== "REJECTED")) return;
+
+  const batch = await prisma.importBatch.findUnique({
+    where: { id: batchId },
+    include: { group: { select: { createdById: true } } },
+  });
+  if (!batch || batch.group.createdById !== user.id) return; // access check
+
+  const pending = await prisma.importAnomaly.findMany({
+    where: { importBatchId: batchId, status: "PENDING_APPROVAL" },
+    select: { id: true, type: true, expenseId: true },
+  });
+  if (pending.length === 0) return;
+
+  await prisma.$transaction(async (tx) => {
+    await tx.importAnomaly.updateMany({
+      where: { importBatchId: batchId, status: "PENDING_APPROVAL" },
+      data: { status: decision as "APPROVED" | "REJECTED" },
+    });
+
+    // Rejecting duplicates reactivates the superseded expenses.
+    if (decision === "REJECTED") {
+      const expenseIds = pending
+        .filter(
+          (a) =>
+            (a.type === "DUPLICATE_EXACT" ||
+              a.type === "DUPLICATE_CONFLICTING") &&
+            a.expenseId,
+        )
+        .map((a) => a.expenseId as string);
+      if (expenseIds.length > 0) {
+        await tx.expense.updateMany({
+          where: { id: { in: expenseIds } },
+          data: { status: "ACTIVE" },
+        });
+      }
+    }
+  });
+
+  revalidatePath(`/import/${batchId}`);
+}
