@@ -88,33 +88,33 @@ export default async function GroupDetailPage({
   });
 
   return (
-    <main className="mx-auto max-w-4xl p-6 sm:p-8">
-      <nav className="mb-4 text-sm text-neutral-500">
-        <Link href="/groups" className="underline underline-offset-4">
+    <main className="mx-auto max-w-4xl px-5 py-8 sm:py-10">
+      <nav className="mb-5 text-sm text-muted">
+        <Link href="/groups" className="transition-colors hover:text-fg">
           Groups
         </Link>{" "}
-        / {group.name}
+        <span className="opacity-50">/</span> {group.name}
       </nav>
 
-      <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
+      <header className="mb-8 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">{group.name}</h1>
-          <p className="text-sm text-neutral-500">
+          <h1 className="text-3xl font-semibold tracking-tight">{group.name}</h1>
+          <p className="mt-1.5 text-sm text-muted">
             Base currency {base} · {expenses.length} expenses ·{" "}
             {settlements.length} settlements
           </p>
         </div>
         <Link
           href={`/groups/${group.id}/balances`}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 dark:bg-white dark:text-neutral-900"
+          className="btn btn-primary"
         >
           View balances
         </Link>
       </header>
 
       <section className="mb-10">
-        <h2 className="mb-3 text-lg font-medium">Members</h2>
-        <p className="mb-4 text-sm text-neutral-500">
+        <h2 className="mb-2 text-lg font-semibold">Members</h2>
+        <p className="mb-4 text-sm text-muted">
           Set a &quot;left&quot; date when someone moves out and a
           &quot;joined&quot; date when someone moves in — expenses only count for
           a member during their active window.
@@ -130,71 +130,70 @@ export default async function GroupDetailPage({
       )}
 
       <section className="mb-10">
-        <h2 className="mb-3 text-lg font-medium">Expenses</h2>
+        <h2 className="mb-4 text-lg font-semibold">Expenses</h2>
         {expenses.length === 0 ? (
-          <p className="text-sm text-neutral-500">No expenses yet.</p>
+          <div className="card text-sm text-muted">No expenses yet.</div>
         ) : (
           <ul className="flex flex-col gap-3">
             {expenses.map((e) => {
               const converted = e.currency !== base;
               return (
-                <li
-                  key={e.id}
-                  className="rounded-lg border border-black/10 p-4 dark:border-white/15"
-                >
+                <li key={e.id} className="card">
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
                       <p className="font-medium">
                         {e.description}{" "}
                         {e.status !== "ACTIVE" && (
-                          <span className="ml-1 rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                          <span className="ml-1 rounded-md bg-amber-500/15 px-1.5 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-300">
                             {e.status.toLowerCase()}
                           </span>
                         )}
                       </p>
-                      <p className="text-xs text-neutral-500">
+                      <p className="mt-0.5 text-xs text-muted">
                         {fmtDate(e.date)} · paid by{" "}
                         {e.paidBy?.name ?? "unknown"} · {SPLIT_LABEL[e.splitType]}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">
+                      <p className="font-semibold tabular-nums">
                         {formatMoney(e.amountBaseMinor, base)}
                       </p>
                       {converted && (
-                        <p className="text-xs text-neutral-500">
+                        <p className="text-xs text-muted">
                           {formatMoney(e.amountMinor, e.currency)} @ {e.fxRate}
                         </p>
                       )}
                     </div>
                   </div>
 
-                  <details className="mt-2">
-                    <summary className="cursor-pointer text-xs text-neutral-500">
+                  <details className="mt-3">
+                    <summary className="cursor-pointer select-none text-xs text-muted transition-colors hover:text-fg">
                       Breakdown ({e.splits.length})
                     </summary>
                     <ul className="mt-2 flex flex-col gap-1 text-sm">
                       {e.splits.map((s) => (
                         <li
                           key={s.id}
-                          className="flex justify-between border-b border-dashed border-black/5 pb-1 dark:border-white/10"
+                          className="flex justify-between gap-4 border-b border-dashed border-border pb-1"
                         >
                           <span>
                             {s.member.name}
                             {s.rawShare ? (
-                              <span className="text-neutral-400">
+                              <span className="text-muted">
                                 {" "}
                                 ({s.rawShare})
                               </span>
                             ) : null}
                           </span>
-                          <span>{formatMinor(s.owedBaseMinor)}</span>
+                          <span className="tabular-nums">
+                            {formatMinor(s.owedBaseMinor)}
+                          </span>
                         </li>
                       ))}
                     </ul>
                   </details>
 
-                  <div className="mt-2 flex justify-end">
+                  <div className="mt-3 flex justify-end border-t border-border pt-3">
                     <DeleteExpenseButton expenseId={e.id} />
                   </div>
                 </li>
@@ -205,26 +204,27 @@ export default async function GroupDetailPage({
       </section>
 
       <section>
-        <h2 className="mb-3 text-lg font-medium">Settlements</h2>
+        <h2 className="mb-4 text-lg font-semibold">Settlements</h2>
         {settlements.length === 0 ? (
-          <p className="text-sm text-neutral-500">No settlements yet.</p>
+          <div className="card text-sm text-muted">No settlements yet.</div>
         ) : (
-          <ul className="flex flex-col gap-2">
+          <ul className="flex flex-col gap-2.5">
             {settlements.map((s) => (
               <li
                 key={s.id}
-                className="flex items-center justify-between rounded-lg border border-black/10 px-4 py-3 text-sm dark:border-white/15"
+                className="card flex items-center justify-between px-4 py-3.5 text-sm"
               >
                 <span>
-                  <span className="font-medium">{s.fromMember.name}</span> paid{" "}
+                  <span className="font-medium">{s.fromMember.name}</span>{" "}
+                  <span className="text-muted">paid</span>{" "}
                   <span className="font-medium">{s.toMember.name}</span>
-                  <span className="text-neutral-500">
+                  <span className="text-muted">
                     {" "}
                     · {fmtDate(s.date)}
                     {s.note ? ` · ${s.note}` : ""}
                   </span>
                 </span>
-                <span className="font-medium">
+                <span className="font-semibold tabular-nums">
                   {formatMoney(s.amountBaseMinor, base)}
                 </span>
               </li>

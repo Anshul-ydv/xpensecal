@@ -39,43 +39,35 @@ export function NewExpenseForm({
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <form
-      ref={formRef}
-      action={formAction}
-      className="flex flex-col gap-4 rounded-xl border border-black/10 p-5 dark:border-white/15"
-    >
-      <h3 className="font-medium">Add an expense</h3>
+    <form ref={formRef} action={formAction} className="card flex flex-col gap-4">
+      <h3 className="font-semibold">Add an expense</h3>
       <input type="hidden" name="groupId" value={groupId} />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <label className="flex flex-col gap-1 text-xs sm:col-span-2">
-          <span className="text-neutral-500">Description</span>
+        <label className="flex flex-col gap-1.5 text-xs sm:col-span-2">
+          <span className="text-muted">Description</span>
           <input
             name="description"
             required
             placeholder="e.g. Groceries BigBasket"
-            className="rounded-md border border-black/15 px-3 py-2 text-sm dark:border-white/20"
+            className="field"
           />
         </label>
 
-        <label className="flex flex-col gap-1 text-xs">
-          <span className="text-neutral-500">Date</span>
+        <label className="flex flex-col gap-1.5 text-xs">
+          <span className="text-muted">Date</span>
           <input
             name="date"
             type="date"
             required
             defaultValue={today}
-            className="rounded-md border border-black/15 px-3 py-2 text-sm dark:border-white/20"
+            className="field"
           />
         </label>
 
-        <label className="flex flex-col gap-1 text-xs">
-          <span className="text-neutral-500">Paid by</span>
-          <select
-            name="paidByMemberId"
-            required
-            className="rounded-md border border-black/15 px-3 py-2 text-sm dark:border-white/20"
-          >
+        <label className="flex flex-col gap-1.5 text-xs">
+          <span className="text-muted">Paid by</span>
+          <select name="paidByMemberId" required className="field">
             <option value="">Select…</option>
             {members.map((m) => (
               <option key={m.id} value={m.id}>
@@ -85,36 +77,32 @@ export function NewExpenseForm({
           </select>
         </label>
 
-        <label className="flex flex-col gap-1 text-xs">
-          <span className="text-neutral-500">Amount</span>
+        <label className="flex flex-col gap-1.5 text-xs">
+          <span className="text-muted">Amount</span>
           <input
             name="amount"
             inputMode="decimal"
             required
             placeholder="0.00"
-            className="rounded-md border border-black/15 px-3 py-2 text-sm dark:border-white/20"
+            className="field"
           />
         </label>
 
         <div className="grid grid-cols-2 gap-3">
-          <label className="flex flex-col gap-1 text-xs">
-            <span className="text-neutral-500">Currency</span>
-            <select
-              name="currency"
-              defaultValue="INR"
-              className="rounded-md border border-black/15 px-3 py-2 text-sm dark:border-white/20"
-            >
+          <label className="flex flex-col gap-1.5 text-xs">
+            <span className="text-muted">Currency</span>
+            <select name="currency" defaultValue="INR" className="field">
               <option value="INR">INR</option>
               <option value="USD">USD</option>
             </select>
           </label>
-          <label className="flex flex-col gap-1 text-xs">
-            <span className="text-neutral-500">Split</span>
+          <label className="flex flex-col gap-1.5 text-xs">
+            <span className="text-muted">Split</span>
             <select
               name="splitType"
               value={splitType}
               onChange={(e) => setSplitType(e.target.value as SplitType)}
-              className="rounded-md border border-black/15 px-3 py-2 text-sm dark:border-white/20"
+              className="field"
             >
               <option value="EQUAL">Equal</option>
               <option value="UNEQUAL">Unequal (amounts)</option>
@@ -125,8 +113,8 @@ export function NewExpenseForm({
         </div>
       </div>
 
-      <fieldset className="flex flex-col gap-2">
-        <legend className="text-xs text-neutral-500">
+      <fieldset className="flex flex-col gap-2 rounded-lg border border-border p-3">
+        <legend className="px-1 text-xs text-muted">
           Participants{needsValue ? ` — enter ${VALUE_HINT[splitType]}` : ""}
         </legend>
         {members.map((m) => (
@@ -136,7 +124,7 @@ export function NewExpenseForm({
                 type="checkbox"
                 name={`include_${m.id}`}
                 defaultChecked
-                className="h-4 w-4"
+                className="h-4 w-4 accent-accent"
               />
               {m.name}
             </label>
@@ -145,7 +133,7 @@ export function NewExpenseForm({
                 name={`value_${m.id}`}
                 inputMode="decimal"
                 placeholder={VALUE_HINT[splitType]}
-                className="w-40 rounded-md border border-black/15 px-2 py-1 text-sm dark:border-white/20"
+                className="field w-40"
               />
             )}
           </div>
@@ -153,18 +141,16 @@ export function NewExpenseForm({
       </fieldset>
 
       {state && "error" in state && (
-        <p className="text-sm text-red-600">{state.error}</p>
+        <p className="text-sm text-neg">{state.error}</p>
       )}
       {state && "ok" in state && state.ok && (
-        <p className="text-sm text-green-700 dark:text-green-400">
-          Expense added.
-        </p>
+        <p className="text-sm text-pos">Expense added.</p>
       )}
 
       <button
         type="submit"
         disabled={pending}
-        className="self-start rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-60 dark:bg-white dark:text-neutral-900"
+        className="btn btn-primary self-start disabled:opacity-60"
       >
         {pending ? "Adding…" : "Add expense"}
       </button>

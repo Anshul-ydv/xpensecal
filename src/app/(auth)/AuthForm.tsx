@@ -20,11 +20,14 @@ export function AuthForm({ mode, action }: Props) {
   const isRegister = mode === "register";
 
   return (
-    <div className="w-full max-w-sm rounded-xl border border-black/10 bg-white p-8 shadow-sm dark:border-white/15 dark:bg-neutral-900">
-      <h1 className="mb-1 text-2xl font-semibold">
+    <div className="card w-full max-w-sm p-8">
+      <p className="mb-6 text-sm font-semibold tracking-tight text-muted">
+        XpenseCal
+      </p>
+      <h1 className="mb-1 text-2xl font-semibold tracking-tight">
         {isRegister ? "Create your account" : "Welcome back"}
       </h1>
-      <p className="mb-6 text-sm text-neutral-500">
+      <p className="mb-6 text-sm text-muted">
         {isRegister
           ? "Sign up to start tracking shared expenses."
           : "Log in to your XpenseCal account."}
@@ -32,30 +35,18 @@ export function AuthForm({ mode, action }: Props) {
 
       <form action={formAction} className="flex flex-col gap-4">
         {isRegister && (
-          <label className="flex flex-col gap-1 text-sm">
+          <label className="flex flex-col gap-1.5 text-sm">
             <span className="font-medium">Name</span>
-            <input
-              name="name"
-              type="text"
-              required
-              autoComplete="name"
-              className="rounded-md border border-black/15 px-3 py-2 text-sm outline-none focus:border-black/40 dark:border-white/20"
-            />
+            <input name="name" type="text" required autoComplete="name" className="field" />
           </label>
         )}
 
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="flex flex-col gap-1.5 text-sm">
           <span className="font-medium">Email</span>
-          <input
-            name="email"
-            type="email"
-            required
-            autoComplete="email"
-            className="rounded-md border border-black/15 px-3 py-2 text-sm outline-none focus:border-black/40 dark:border-white/20"
-          />
+          <input name="email" type="email" required autoComplete="email" className="field" />
         </label>
 
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="flex flex-col gap-1.5 text-sm">
           <span className="font-medium">Password</span>
           <input
             name="password"
@@ -63,12 +54,12 @@ export function AuthForm({ mode, action }: Props) {
             required
             autoComplete={isRegister ? "new-password" : "current-password"}
             minLength={isRegister ? 8 : undefined}
-            className="rounded-md border border-black/15 px-3 py-2 text-sm outline-none focus:border-black/40 dark:border-white/20"
+            className="field"
           />
         </label>
 
         {state?.error && (
-          <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300">
+          <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-neg">
             {state.error}
           </p>
         )}
@@ -76,7 +67,7 @@ export function AuthForm({ mode, action }: Props) {
         <button
           type="submit"
           disabled={pending}
-          className="mt-2 rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-700 disabled:opacity-60 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+          className="btn btn-primary mt-2 disabled:opacity-60"
         >
           {pending
             ? "Please wait…"
@@ -86,18 +77,18 @@ export function AuthForm({ mode, action }: Props) {
         </button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-neutral-500">
+      <p className="mt-6 text-center text-sm text-muted">
         {isRegister ? (
           <>
             Already have an account?{" "}
-            <Link href="/login" className="font-medium underline">
+            <Link href="/login" className="font-medium text-accent hover:underline">
               Log in
             </Link>
           </>
         ) : (
           <>
             New here?{" "}
-            <Link href="/register" className="font-medium underline">
+            <Link href="/register" className="font-medium text-accent hover:underline">
               Create an account
             </Link>
           </>

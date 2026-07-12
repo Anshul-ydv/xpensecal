@@ -1,26 +1,135 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ------------------------------------------------------------------ *
+ * Design tokens — calm, minimal, dark-first (with a light fallback).
+ * One restrained accent, soft borders, and a single surface level so
+ * the UI reads quietly instead of competing for attention.
+ * ------------------------------------------------------------------ */
+@theme {
+  --color-bg: #0c0e12;
+  --color-surface: #14171d;
+  --color-elevated: #191d24;
+  --color-border: #232830;
+  --color-fg: #e6e8ec;
+  --color-muted: #8b93a1;
+  --color-faint: #5f6672;
+  --color-accent: #6b8afd;
+  --color-accent-hover: #829bff;
+  --color-accent-fg: #0c0e12;
+
+  --color-pos: #4ade80;
+  --color-neg: #f87171;
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --radius-xl: 0.75rem;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: light) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --color-bg: #fafbfc;
+    --color-surface: #ffffff;
+    --color-elevated: #f4f5f7;
+    --color-border: #e6e8ec;
+    --color-fg: #1b1f26;
+    --color-muted: #667085;
+    --color-faint: #98a1b0;
+    --color-accent: #3b6ef5;
+    --color-accent-hover: #2f5fe0;
+    --color-accent-fg: #ffffff;
+    --color-pos: #16a34a;
+    --color-neg: #dc2626;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ------------------------------------------------------------------ *
+ * Small set of quiet, reusable component classes
+ * ------------------------------------------------------------------ */
+@layer components {
+  .card {
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-border);
+    background-color: var(--color-surface);
+    padding: 1.25rem;
+  }
+
+  /* Only for interactive cards (links): a whisper of feedback, no motion. */
+  .card-link {
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+  }
+  .card-link:hover {
+    background-color: var(--color-elevated);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.5rem;
+    padding: 0.55rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease,
+      opacity 0.15s ease;
+  }
+
+  .btn-primary {
+    background-color: var(--color-accent);
+    color: var(--color-accent-fg);
+    font-weight: 600;
+  }
+  .btn-primary:hover {
+    background-color: var(--color-accent-hover);
+  }
+
+  .btn-ghost {
+    border: 1px solid var(--color-border);
+    background-color: transparent;
+    color: var(--color-fg);
+  }
+  .btn-ghost:hover {
+    background-color: var(--color-elevated);
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    padding: 0.15rem 0.55rem;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--color-muted);
+    background-color: var(--color-elevated);
+  }
+
+  .field {
+    width: 100%;
+    border-radius: 0.5rem;
+    border: 1px solid var(--color-border);
+    background-color: var(--color-bg);
+    padding: 0.55rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--color-fg);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .field:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 22%, transparent);
+  }
+  .field::placeholder {
+    color: var(--color-faint);
+  }
 }

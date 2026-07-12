@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import type { SplitType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { assertGroupAccess } from "@/lib/groups";
@@ -13,8 +12,6 @@ import { createExpense, type SplitMemberInput } from "@/lib/expenses";
 import { createSettlement } from "@/lib/settlements";
 
 export type ActionState = { error: string } | { ok: true } | null;
-
-const SPLIT_TYPES: SplitType[] = ["EQUAL", "UNEQUAL", "PERCENTAGE", "SHARE"];
 
 const baseExpenseSchema = z.object({
   groupId: z.string().min(1),
@@ -249,5 +246,3 @@ export async function createSettlementAction(
   revalidatePath(`/groups/${groupId}`);
   return { ok: true };
 }
-
-export { SPLIT_TYPES };

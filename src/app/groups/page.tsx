@@ -11,10 +11,10 @@ export default async function GroupsPage() {
   return (
     <>
       <AppHeader userName={user.name} />
-      <main className="mx-auto max-w-3xl p-6 sm:p-8">
-      <header className="mb-6">
-        <h1 className="text-2xl font-semibold">Your groups</h1>
-        <p className="text-sm text-neutral-500">
+      <main className="mx-auto max-w-3xl px-5 py-8 sm:py-10">
+      <header className="mb-8">
+        <h1 className="text-3xl font-semibold tracking-tight">Your groups</h1>
+        <p className="mt-1.5 text-sm text-muted">
           Create a group and manage who is in it over time.
         </p>
       </header>
@@ -24,17 +24,17 @@ export default async function GroupsPage() {
       </div>
 
       {groups.length === 0 ? (
-        <p className="text-sm text-neutral-500">No groups yet.</p>
+        <div className="card text-sm text-muted">No groups yet.</div>
       ) : (
         <ul className="flex flex-col gap-3">
           {groups.map((g) => (
             <li key={g.id}>
               <Link
                 href={`/groups/${g.id}`}
-                className="flex items-center justify-between rounded-lg border border-black/10 px-5 py-4 transition hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/5"
+                className="card card-link flex items-center justify-between px-5 py-4"
               >
                 <span className="font-medium">{g.name}</span>
-                <span className="text-sm text-neutral-500">
+                <span className="text-sm text-muted">
                   {g._count.members} members · {g._count.expenses} expenses ·{" "}
                   {g.baseCurrency}
                 </span>

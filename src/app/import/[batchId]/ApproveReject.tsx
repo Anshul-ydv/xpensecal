@@ -11,7 +11,7 @@ export function ApproveReject({ anomalyId }: { anomalyId: string }) {
         <input type="hidden" name="decision" value="APPROVED" />
         <button
           type="submit"
-          className="rounded border border-green-600/40 px-2 py-1 text-xs text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-950/40"
+          className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-pos transition-colors hover:bg-emerald-500/20"
         >
           Approve
         </button>
@@ -21,7 +21,7 @@ export function ApproveReject({ anomalyId }: { anomalyId: string }) {
         <input type="hidden" name="decision" value="REJECTED" />
         <button
           type="submit"
-          className="rounded border border-red-600/40 px-2 py-1 text-xs text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"
+          className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-neg transition-colors hover:bg-red-500/20"
         >
           Reject
         </button>

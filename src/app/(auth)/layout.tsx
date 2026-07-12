@@ -12,7 +12,7 @@ export default async function AuthLayout({
   if (user) redirect("/dashboard");
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-neutral-50 p-4 dark:bg-neutral-950">
+    <div className="flex min-h-screen items-center justify-center bg-bg p-4">
       {children}
     </div>
   );

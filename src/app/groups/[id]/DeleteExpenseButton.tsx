@@ -14,7 +14,7 @@ export function DeleteExpenseButton({ expenseId }: { expenseId: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="text-xs text-red-600 hover:underline disabled:opacity-50"
+        className="text-xs text-neg hover:underline disabled:opacity-50"
       >
         {pending ? "Deleting…" : "Delete"}
       </button>

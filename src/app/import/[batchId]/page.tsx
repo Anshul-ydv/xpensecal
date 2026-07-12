@@ -12,12 +12,19 @@ const SEVERITY_ORDER: Record<AnomalySeverity, number> = {
   INFO: 2,
 };
 
+// Pill styles for the summary counts.
 const SEVERITY_STYLE: Record<AnomalySeverity, string> = {
   ERROR:
-    "border-red-500/30 bg-red-50 text-red-800 dark:bg-red-950/30 dark:text-red-300",
+    "border-red-500/40 bg-red-500/10 text-red-600 dark:text-red-300",
   WARNING:
-    "border-amber-500/30 bg-amber-50 text-amber-800 dark:bg-amber-950/30 dark:text-amber-300",
-  INFO: "border-sky-500/30 bg-sky-50 text-sky-800 dark:bg-sky-950/30 dark:text-sky-300",
+    "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-300",
+  INFO: "border-sky-500/40 bg-sky-500/10 text-sky-600 dark:text-sky-300",
+};
+
+const SEVERITY_DOT: Record<AnomalySeverity, string> = {
+  ERROR: "bg-red-400",
+  WARNING: "bg-amber-400",
+  INFO: "bg-sky-400",
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -56,21 +63,21 @@ export default async function ImportReportPage({
   }, {});
 
   return (
-    <main className="mx-auto max-w-3xl p-6 sm:p-8">
-      <nav className="mb-4 text-sm text-neutral-500">
-        <Link href="/import" className="underline underline-offset-4">
+    <main className="mx-auto max-w-3xl px-5 py-8 sm:py-10">
+      <nav className="mb-5 text-sm text-muted">
+        <Link href="/import" className="transition-colors hover:text-fg">
           Import
         </Link>{" "}
-        / Report
+        <span className="opacity-50">/</span> Report
       </nav>
 
-      <header className="mb-6">
-        <h1 className="text-2xl font-semibold">Import report</h1>
-        <p className="text-sm text-neutral-500">
+      <header className="mb-8">
+        <h1 className="text-3xl font-semibold tracking-tight">Import report</h1>
+        <p className="mt-1.5 text-sm text-muted">
           {batch.filename} · imported into{" "}
           <Link
             href={`/groups/${batch.group.id}`}
-            className="underline underline-offset-4"
+            className="text-fg underline underline-offset-4 decoration-border hover:decoration-accent"
           >
             {batch.group.name}
           </Link>
@@ -90,7 +97,7 @@ export default async function ImportReportPage({
           counts[s] ? (
             <span
               key={s}
-              className={`rounded-full border px-3 py-1 ${SEVERITY_STYLE[s]}`}
+              className={`rounded-full border px-3 py-1 font-medium ${SEVERITY_STYLE[s]}`}
             >
               {counts[s]} {s.toLowerCase()}
             </span>
@@ -98,47 +105,42 @@ export default async function ImportReportPage({
         )}
       </div>
 
-      <div className="mb-6 flex gap-3">
-        <Link
-          href={`/groups/${batch.group.id}/balances`}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 dark:bg-white dark:text-neutral-900"
-        >
+      <div className="mb-9 flex gap-3">
+        <Link href={`/groups/${batch.group.id}/balances`} className="btn btn-primary">
           View balances
         </Link>
-        <Link
-          href={`/groups/${batch.group.id}`}
-          className="rounded-md border border-black/15 px-4 py-2 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
-        >
+        <Link href={`/groups/${batch.group.id}`} className="btn btn-ghost">
           Open group
         </Link>
       </div>
 
       <section>
-        <h2 className="mb-3 text-lg font-medium">
-          Anomalies detected ({anomalies.length})
+        <h2 className="mb-4 text-lg font-semibold">
+          Anomalies detected{" "}
+          <span className="text-muted">({anomalies.length})</span>
         </h2>
         {anomalies.length === 0 ? (
-          <p className="text-sm text-neutral-500">No anomalies — clean import.</p>
+          <p className="text-sm text-muted">No anomalies — clean import.</p>
         ) : (
           <ul className="flex flex-col gap-3">
             {anomalies.map((a) => (
-              <li
-                key={a.id}
-                className={`rounded-lg border p-4 ${SEVERITY_STYLE[a.severity]}`}
-              >
+              <li key={a.id} className="card">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="text-xs font-semibold uppercase tracking-wide">
+                  <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
+                    <span
+                      className={`inline-block h-2 w-2 rounded-full ${SEVERITY_DOT[a.severity]}`}
+                    />
                     Row {a.rowNumber} · {ANOMALY_META[a.type].label}
                   </span>
-                  <span className="rounded-full border border-black/20 px-2 py-0.5 text-xs dark:border-white/20">
+                  <span className="badge">
                     {STATUS_LABEL[a.status] ?? a.status}
                   </span>
                 </div>
-                <p className="mt-1 text-sm">{a.message}</p>
-                <p className="mt-1 text-sm opacity-80">
-                  <span className="font-medium">Action:</span> {a.action}
+                <p className="mt-2.5 text-sm">{a.message}</p>
+                <p className="mt-1.5 text-sm text-muted">
+                  <span className="font-medium text-fg">Action:</span> {a.action}
                 </p>
-                <p className="mt-2 truncate font-mono text-xs opacity-60">
+                <p className="mt-3 truncate rounded-md bg-bg px-2.5 py-1.5 font-mono text-xs text-faint">
                   {a.rawRow}
                 </p>
                 {a.status === "PENDING_APPROVAL" && (
@@ -157,9 +159,9 @@ export default async function ImportReportPage({
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-lg border border-black/10 p-3 text-center dark:border-white/15">
-      <div className="text-xl font-semibold">{value}</div>
-      <div className="text-xs text-neutral-500">{label}</div>
+    <div className="card px-3 py-4 text-center">
+      <div className="text-2xl font-semibold tracking-tight">{value}</div>
+      <div className="mt-1 text-xs text-muted">{label}</div>
     </div>
   );
 }
