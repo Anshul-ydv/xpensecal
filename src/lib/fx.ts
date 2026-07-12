@@ -11,7 +11,7 @@
 // See DECISIONS.md. Rates are expressed as "units of INR per 1 unit of currency".
 const INR_PER_UNIT: Record<string, number> = {
   INR: 1,
-  USD: 83, // fixed assignment rate; ~market rate for the trip period
+  USD: 95.37, // 1 USD = 95.37 INR
 };
 
 export const SUPPORTED_CURRENCIES = Object.keys(INR_PER_UNIT);
