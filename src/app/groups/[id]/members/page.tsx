@@ -47,6 +47,7 @@ export default async function GroupMembersPage({
         m._count.settlementsFrom +
         m._count.settlementsTo >
       0,
+    isGuest: m.isGuest,
   }));
 
   return (

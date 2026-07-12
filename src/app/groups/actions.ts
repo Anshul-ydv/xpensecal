@@ -67,6 +67,7 @@ export async function addMemberAction(
 
   const { groupId, joinedAt, leftAt } = parsed.data;
   const name = normalizeName(parsed.data.name);
+  const isGuest = formData.get("isGuest") === "on";
   if (!name) return { error: "Member name is required" };
   if (joinedAt && leftAt && leftAt < joinedAt) {
     return { error: "Left date cannot be before joined date" };
@@ -79,7 +80,9 @@ export async function addMemberAction(
   });
   if (existing) return { error: `"${name}" is already a member` };
 
-  await prisma.member.create({ data: { groupId, name, joinedAt, leftAt } });
+  await prisma.member.create({
+    data: { groupId, name, joinedAt, leftAt, isGuest },
+  });
   revalidatePath(`/groups/${groupId}`);
   return null;
 }

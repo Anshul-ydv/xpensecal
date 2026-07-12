@@ -14,6 +14,7 @@ export type MemberDTO = {
   joinedAt: string | null; // YYYY-MM-DD
   leftAt: string | null; // YYYY-MM-DD
   locked: boolean; // has financial records -> cannot be deleted
+  isGuest: boolean; // shares expenses but is not a permanent flatmate
 };
 
 function AddMemberForm({ groupId }: { groupId: string }) {
@@ -38,6 +39,19 @@ function AddMemberForm({ groupId }: { groupId: string }) {
           <input name="leftAt" type="date" className="field" />
         </label>
       </div>
+      <label className="flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          name="isGuest"
+          className="h-4 w-4 accent-accent"
+        />
+        <span>
+          Guest{" "}
+          <span className="text-muted">
+            — shares expenses like everyone, but isn&apos;t a permanent flatmate
+          </span>
+        </span>
+      </label>
       <div className="flex items-center gap-3">
         <button
           type="submit"
@@ -67,7 +81,14 @@ function MemberRow({ member }: { member: MemberDTO }) {
   return (
     <li className="card flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <span className="font-semibold">{member.name}</span>
+        <span className="flex items-center gap-2 font-semibold">
+          {member.name}
+          {member.isGuest && (
+            <span className="rounded-full bg-violet-500/15 px-2 py-0.5 text-xs font-medium text-violet-600 dark:text-violet-300">
+              guest
+            </span>
+          )}
+        </span>
         {member.locked ? (
           <span className="badge">in use · can’t delete</span>
         ) : (

@@ -35,10 +35,15 @@ export default async function GroupDetailPage({
   const members = await prisma.member.findMany({
     where: { groupId: id },
     orderBy: { name: "asc" },
-    select: { id: true, name: true },
+    select: { id: true, name: true, isGuest: true },
   });
 
-  const formMembers = members.map((m) => ({ id: m.id, name: m.name }));
+  const formMembers = members.map((m) => ({
+    id: m.id,
+    name: m.name,
+    isGuest: m.isGuest,
+  }));
+  const guestCount = members.filter((m) => m.isGuest).length;
 
   // Expenses newest first, with their resolved per-member breakdown (Rohan's
   // "show me exactly which expenses make up my number").
@@ -111,8 +116,10 @@ export default async function GroupDetailPage({
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">{group.name}</h1>
           <p className="mt-1.5 text-sm text-muted">
-            Base currency {base} · {expenses.length} expenses ·{" "}
-            {settlements.length} settlements
+            Base currency {base} · {members.length} member
+            {members.length === 1 ? "" : "s"}
+            {guestCount > 0 ? ` (${guestCount} guest${guestCount === 1 ? "" : "s"})` : ""} ·{" "}
+            {expenses.length} expenses · {settlements.length} settlements
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

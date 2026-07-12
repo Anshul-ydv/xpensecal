@@ -11,12 +11,15 @@ import { Avatar } from "./Avatar";
 export function PerPersonTable({
   members,
   base,
+  guestIds = [],
 }: {
   members: MemberBalance[];
   base: string;
+  guestIds?: string[];
 }) {
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const toggle = (id: string) => setOpen((o) => ({ ...o, [id]: !o[id] }));
+  const guestSet = new Set(guestIds);
 
   return (
     <div className="overflow-x-auto rounded-xl border border-border bg-surface">
@@ -50,7 +53,14 @@ export function PerPersonTable({
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
                       <Avatar name={m.name} />
-                      <span className="font-medium">{m.name}</span>
+                      <span className="flex items-center gap-2 font-medium">
+                        {m.name}
+                        {guestSet.has(m.memberId) && (
+                          <span className="rounded-full bg-violet-500/15 px-2 py-0.5 text-xs font-medium text-violet-600 dark:text-violet-300">
+                            guest
+                          </span>
+                        )}
+                      </span>
                     </div>
                   </td>
                   <td className="px-5 py-4">

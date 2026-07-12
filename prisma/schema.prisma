@@ -80,6 +80,9 @@ model Member {
   user     User?     @relation(fields: [userId], references: [id])
   joinedAt DateTime?
   leftAt   DateTime?
+  // A guest shares expenses like anyone else (counts in splits and balances)
+  // but is not a permanent flatmate — shown with a "guest" tag in the UI.
+  isGuest  Boolean   @default(false)
 
   paidExpenses     Expense[]      @relation("ExpensePaidBy")
   splits           ExpenseSplit[]

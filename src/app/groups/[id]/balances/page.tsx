@@ -4,6 +4,7 @@ import { requireUser } from "@/lib/auth";
 import { getGroupForUser } from "@/lib/groups";
 import { computeGroupBalances } from "@/lib/balances";
 import { formatMoney } from "@/lib/money";
+import { prisma } from "@/lib/prisma";
 import { BackButton } from "@/app/BackButton";
 import { Avatar } from "./Avatar";
 import { PerPersonTable } from "./PerPersonTable";
@@ -21,6 +22,12 @@ export default async function BalancesPage({
 
   const balances = await computeGroupBalances(id);
   const base = balances.baseCurrency;
+
+  const guests = await prisma.member.findMany({
+    where: { groupId: id, isGuest: true },
+    select: { id: true },
+  });
+  const guestIds = guests.map((g) => g.id);
 
   return (
     <main className="mx-auto max-w-5xl px-5 py-8 sm:py-10">
@@ -88,7 +95,11 @@ export default async function BalancesPage({
             Tap any row to see how the number is made up.
           </p>
         </div>
-        <PerPersonTable members={balances.members} base={base} />
+        <PerPersonTable
+          members={balances.members}
+          base={base}
+          guestIds={guestIds}
+        />
       </section>
     </main>
   );

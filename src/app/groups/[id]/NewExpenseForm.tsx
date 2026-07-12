@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import type { SplitType } from "@prisma/client";
 import { createExpenseAction, type ActionState } from "./actions";
 
-export type FormMember = { id: string; name: string };
+export type FormMember = { id: string; name: string; isGuest?: boolean };
 
 // Human hint for the per-participant value input, by split type.
 const VALUE_HINT: Record<Exclude<SplitType, "EQUAL">, string> = {
@@ -129,6 +129,11 @@ export function NewExpenseForm({
                 className="h-4 w-4 accent-accent"
               />
               {m.name}
+              {m.isGuest && (
+                <span className="rounded-full bg-violet-500/15 px-1.5 py-0.5 text-xs font-medium text-violet-600 dark:text-violet-300">
+                  guest
+                </span>
+              )}
             </label>
             {needsValue && (
               <input
