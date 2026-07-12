@@ -31,12 +31,20 @@ export default async function DashboardPage() {
           Create a group, manage who is in it over time, add expenses, and see
           who owes whom.
         </p>
-        <Link
-          href="/groups"
-          className="inline-block rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 dark:bg-white dark:text-neutral-900"
-        >
-          Go to your groups
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href="/groups"
+            className="inline-block rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 dark:bg-white dark:text-neutral-900"
+          >
+            Go to your groups
+          </Link>
+          <Link
+            href="/import"
+            className="inline-block rounded-md border border-black/15 px-4 py-2 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+          >
+            Import a CSV
+          </Link>
+        </div>
       </section>
     </main>
   );
