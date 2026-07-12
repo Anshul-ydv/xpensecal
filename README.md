@@ -87,6 +87,13 @@ The importer (`src/lib/import/importer.ts`) reads the CSV, then for every row:
 The full anomaly log and the database schema are in **`SCOPE.md`**. The reasoning
 behind each significant choice is in **`DECISIONS.md`**.
 
+## Deployment
+
+Step-by-step deploy instructions (Vercel + Neon Postgres) are in **`DEPLOY.md`**.
+The production `build` runs `prisma generate && prisma migrate deploy &&
+next build`, so the database schema is applied automatically on deploy. Required
+production env vars: `DATABASE_URL`, `DIRECT_URL`, `AUTH_SECRET`.
+
 ## Project layout
 
 ```

@@ -19,7 +19,11 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  // Runtime connection. On serverless hosts this is the POOLED connection string.
   url      = env("DATABASE_URL")
+  // Migrations need a direct (non-pooled) connection. Set DIRECT_URL to the
+  // direct connection string; locally it can be the same as DATABASE_URL.
+  directUrl = env("DIRECT_URL")
 }
 
 // ---------------------------------------------------------------------------
