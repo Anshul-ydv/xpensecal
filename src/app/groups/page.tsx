@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { listGroupsForUser } from "@/lib/groups";
+import { AppHeader } from "../AppHeader";
 import { CreateGroupForm } from "./CreateGroupForm";
 
 export default async function GroupsPage() {
@@ -8,20 +9,14 @@ export default async function GroupsPage() {
   const groups = await listGroupsForUser(user.id);
 
   return (
-    <main className="mx-auto max-w-3xl p-8">
-      <header className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Your groups</h1>
-          <p className="text-sm text-neutral-500">
-            Create a group and manage who is in it over time.
-          </p>
-        </div>
-        <Link
-          href="/dashboard"
-          className="text-sm underline underline-offset-4"
-        >
-          Dashboard
-        </Link>
+    <>
+      <AppHeader userName={user.name} />
+      <main className="mx-auto max-w-3xl p-6 sm:p-8">
+      <header className="mb-6">
+        <h1 className="text-2xl font-semibold">Your groups</h1>
+        <p className="text-sm text-neutral-500">
+          Create a group and manage who is in it over time.
+        </p>
       </header>
 
       <div className="mb-8">
@@ -48,6 +43,7 @@ export default async function GroupsPage() {
           ))}
         </ul>
       )}
-    </main>
+      </main>
+    </>
   );
 }

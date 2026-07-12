@@ -1,19 +1,14 @@
-import Link from "next/link";
 import { requireUser } from "@/lib/auth";
+import { AppHeader } from "../AppHeader";
 import { ImportForms } from "./ImportForms";
 
 export default async function ImportPage() {
-  await requireUser();
+  const user = await requireUser();
 
   return (
-    <main className="mx-auto max-w-2xl p-6 sm:p-8">
-      <nav className="mb-4 text-sm text-neutral-500">
-        <Link href="/dashboard" className="underline underline-offset-4">
-          Dashboard
-        </Link>{" "}
-        / Import
-      </nav>
-
+    <>
+      <AppHeader userName={user.name} />
+      <main className="mx-auto max-w-2xl p-6 sm:p-8">
       <header className="mb-6">
         <h1 className="text-2xl font-semibold">Import expenses</h1>
         <p className="text-sm text-neutral-500">
@@ -23,6 +18,7 @@ export default async function ImportPage() {
       </header>
 
       <ImportForms />
-    </main>
+      </main>
+    </>
   );
 }
