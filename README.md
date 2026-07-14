@@ -7,7 +7,7 @@ explainable balances — who owes whom, and the exact expenses behind every numb
 
 Built for the Spreetail internship assignment.
 
-- **Live app:** xpensecal.vercel.app
+- **Live app:** https://xpensecal.vercel.app
 - **Repo:** https://github.com/Anshul-ydv/xpensecal
 
 ## What it does
