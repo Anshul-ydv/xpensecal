@@ -1,6 +1,6 @@
 import type { Prisma, PrismaClient, SplitType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { getFxRate } from "@/lib/fx";
+import { getFxRate, isSupportedCurrency } from "@/lib/fx";
 import { allocateByWeights, formatMinor, roundToMinor } from "@/lib/money";
 
 // A Prisma client or an interactive-transaction client. Lets the importer call
@@ -63,7 +63,18 @@ export async function createExpense(input: CreateExpenseInput): Promise<string> 
 
   // 1. Convert the original amount to the group's base currency and remember the
   //    exact rate used, so the conversion is auditable (Priya's request).
-  const fxRate = getFxRate(input.currency, input.baseCurrency);
+  //
+  //    A quarantined row (VOID) may carry an unsupported currency — that is
+  //    exactly why it was quarantined. It is excluded from balances, so we keep
+  //    it visible for audit with a passthrough rate of 1 instead of throwing and
+  //    crashing the whole import. An ACTIVE expense with an unsupported currency
+  //    is still a hard error (callers guard against this before we get here).
+  const status = input.status ?? "ACTIVE";
+  const currencySupported = isSupportedCurrency(input.currency);
+  const fxRate =
+    !currencySupported && status === "VOID"
+      ? 1
+      : getFxRate(input.currency, input.baseCurrency);
   const amountBaseMinor = roundToMinor(input.amountMinor * fxRate);
 
   // 2. Allocate the base total across members by their weights. This is where a
@@ -84,7 +95,7 @@ export async function createExpense(input: CreateExpenseInput): Promise<string> 
         splitType: input.splitType,
         paidByMemberId: input.paidByMemberId,
         notes: input.notes ?? null,
-        status: input.status ?? "ACTIVE",
+        status,
         importBatchId: input.importBatchId ?? null,
         sourceRow: input.sourceRow ?? null,
         splits: {
