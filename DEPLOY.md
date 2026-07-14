@@ -24,10 +24,24 @@ to start and need no CLI. Any Postgres host and any Node host work equally well.
    | `AUTH_SECRET` | a long random string (e.g. `openssl rand -base64 32`) |
 4. Click **Deploy**.
 
-The `build` script runs `prisma generate && prisma migrate deploy && next build`,
-so the schema is created on the production database automatically during the
-first deploy. `prisma migrate deploy` is idempotent, so subsequent deploys are
-safe.
+The `build` script runs `prisma generate && next build`. Migrations are applied
+as a **separate, deliberate step** rather than during the build, because the
+build machine cannot reliably reach a scale-to-zero serverless database inside
+the build window (Neon's free tier auto-suspends, which caused `prisma migrate
+deploy` to fail with `P1001` and abort the whole build).
+
+## 2a. Apply migrations to the production database
+
+Run this once after the first deploy, and again whenever you add a new migration:
+
+```bash
+# with the production DATABASE_URL / DIRECT_URL in your environment
+npm run migrate:deploy
+```
+
+`prisma migrate deploy` is idempotent, so re-running it is safe. If you prefer to
+run it from your machine against the Neon database, pull the production values
+first (`vercel env pull`) or export `DATABASE_URL`/`DIRECT_URL` inline.
 
 ## 3. Verify
 
